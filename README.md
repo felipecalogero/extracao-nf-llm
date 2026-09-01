@@ -33,3 +33,9 @@ O servidor sobe em `http://0.0.0.0:8000`. Health check: `GET /health`.
 | `make format` | Formata o código |
 | `make test` | Roda os testes com coverage |
 
+## Status
+
+- **Parte 1** — Esqueleto do projeto (FastAPI + config + health) ✅
+- **Parte 2** — Contrato de dados Pydantic (domínio da NF) ✅
+- Partes 3–9 — Pendentes (upload, LangChain, orquestração, testes finais)
+
