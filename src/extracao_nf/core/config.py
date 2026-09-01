@@ -3,6 +3,7 @@
 from functools import lru_cache
 from typing import Literal
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -25,6 +26,12 @@ class Settings(BaseSettings):
     # --- Aplicação ---
     environment: Literal["development", "staging", "production", "test"] = "development"
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
+
+    # --- Upload ---
+    upload_max_bytes: int = Field(
+        default=10 * 1024 * 1024,
+        description="Tamanho máximo do arquivo em POST /extrair-nf (bytes, default: 10 MB)",
+    )
 
 
 @lru_cache(maxsize=1)

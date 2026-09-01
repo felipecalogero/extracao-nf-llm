@@ -35,7 +35,13 @@ O servidor sobe em `http://0.0.0.0:8000`. Health check: `GET /health`.
 
 ## Status
 
-- **Parte 1** — Esqueleto do projeto (FastAPI + config + health) ✅
-- **Parte 2** — Contrato de dados Pydantic (domínio da NF) ✅
-- Partes 3–9 — Pendentes (upload, LangChain, orquestração, testes finais)
+Em desenvolvimento incremental.
+
+**Implementado:**
+- API FastAPI com configuração, logging e health check
+- Contrato Pydantic da extração de NF (domínio)
+- Endpoint `POST /extrair-nf` com validação de upload (stub, sem LLM)
+
+**Pendente:**
+- Preparação do documento para o LLM, chain LangChain, orquestração e observabilidade
 
