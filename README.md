@@ -42,7 +42,9 @@ Em desenvolvimento incremental.
 - Contrato Pydantic da extração de NF (domínio)
 - Endpoint `POST /extrair-nf` com validação de upload (stub, sem LLM)
 - Preparação de documento para o LLM (validação + data URI base64)
+- Prompt few-shot + chain LangChain com Gemini (`with_structured_output`)
+- Serviço de orquestração extrator_nf (erros LLM + inconsistências)
 
 **Pendente:**
-- Chain LangChain com Gemini, orquestração da extração e observabilidade
+- Integração final no endpoint, suíte de testes consolidada e observabilidade
 

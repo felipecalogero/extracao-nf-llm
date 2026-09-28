@@ -3,7 +3,7 @@
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -31,6 +31,26 @@ class Settings(BaseSettings):
     upload_max_bytes: int = Field(
         default=10 * 1024 * 1024,
         description="Tamanho máximo do arquivo em POST /extrair-nf (bytes, default: 10 MB)",
+    )
+
+    google_api_key: SecretStr | None = Field(
+        default=None,
+        description="Chave de API do Google AI Studio / Gemini",
+    )
+    gemini_model: str = Field(
+        default="gemini-2.5-flash",
+        description="Nome do modelo Gemini multimodal usado na extração",
+    )
+    llm_temperature: float = Field(
+        default=0.0,
+        ge=0.0,
+        le=2.0,
+        description="Temperatura do LLM (0.0 favorece extração determinística)",
+    )
+    llm_timeout_seconds: float = Field(
+        default=60.0,
+        gt=0.0,
+        description="Timeout em segundos para cada chamada ao Gemini",
     )
 
 
