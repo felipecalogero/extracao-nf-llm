@@ -22,7 +22,7 @@ todos:
     status: completed
   - id: parte7-integracao-endpoint
     content: "Parte 7: Integração final no endpoint + mapeamento de erros HTTP + logging"
-    status: pending
+    status: completed
   - id: parte8-testes
     content: "Parte 8: Suíte de testes unitários e de integração + lint"
     status: pending

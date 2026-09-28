@@ -40,11 +40,11 @@ Em desenvolvimento incremental.
 **Implementado:**
 - API FastAPI com configuração, logging e health check
 - Contrato Pydantic da extração de NF (domínio)
-- Endpoint `POST /extrair-nf` com validação de upload (stub, sem LLM)
+- Endpoint `POST /extrair-nf` integrado ao extrator, com validação de upload e mapeamento HTTP de erros
 - Preparação de documento para o LLM (validação + data URI base64)
 - Prompt few-shot + chain LangChain com Gemini (`with_structured_output`)
 - Serviço de orquestração extrator_nf (erros LLM + inconsistências)
 
 **Pendente:**
-- Integração final no endpoint, suíte de testes consolidada e observabilidade
+- Suíte consolidada (Parte 8) e observabilidade (Parte 9)
 
