@@ -25,7 +25,7 @@ todos:
     status: completed
   - id: parte8-testes
     content: "Parte 8: Suíte de testes unitários e de integração + lint"
-    status: pending
+    status: completed
   - id: parte9-extra-observabilidade
     content: "Parte 9 (extra): LangSmith tracing, Dockerfile, CI"
     status: pending

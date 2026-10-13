@@ -1,20 +1,10 @@
 """Testes unitários do serviço de preparação de documento."""
 
-from io import BytesIO
-
 import pytest
-from PIL import Image
 
 from extracao_nf.core.exceptions import ArquivoIlegivelError, ArquivoInvalidoError
 from extracao_nf.services.document_preparer import preparar_documento
-
-PDF_VALIDO = b"%PDF-1.4\n% conteudo minimo de teste"
-
-
-def _criar_imagem_bytes(formato: str) -> bytes:
-    buffer = BytesIO()
-    Image.new("RGB", (2, 2), color="white").save(buffer, format=formato)
-    return buffer.getvalue()
+from tests.fakes import PDF_VALIDO, bytes_imagem
 
 
 def test_preparar_documento_pdf_valido() -> None:
@@ -36,7 +26,7 @@ def test_preparar_documento_pdf_valido() -> None:
 )
 def test_preparar_documento_imagem_valida(formato: str, content_type: str) -> None:
     """Imagens legíveis pelo Pillow devem gerar data URI correspondente."""
-    conteudo = _criar_imagem_bytes(formato)
+    conteudo = bytes_imagem(formato)
     documento = preparar_documento(conteudo=conteudo, content_type=content_type)
 
     assert documento.content_type == content_type

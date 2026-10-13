@@ -5,29 +5,12 @@ from unittest.mock import MagicMock
 
 import pytest
 from langchain_core.runnables import RunnableLambda
-from pydantic import SecretStr
 
 from extracao_nf.core.config import Settings
-from extracao_nf.domain.enums import TipoDocumento
-from extracao_nf.domain.models import (
-    DadosNota,
-    Emitente,
-    NotaFiscalExtraida,
-    Produto,
-    Valores,
-)
+from extracao_nf.domain.models import NotaFiscalExtraida
 from extracao_nf.services.llm_provider import criar_chat_model
 from extracao_nf.services.prompt_builder import construir_prompt, montar_chain
-
-
-def _settings_com_chave(*, api_key: str = "fake-key-para-teste") -> Settings:
-    return Settings(
-        environment="test",
-        google_api_key=SecretStr(api_key),
-        gemini_model="gemini-2.5-flash",
-        llm_temperature=0.0,
-        llm_timeout_seconds=30.0,
-    )
+from tests.fakes import fake_llm_com_nota, nota_fiscal_exemplo, settings_teste
 
 
 def test_criar_chat_model_exige_api_key() -> None:
@@ -40,7 +23,7 @@ def test_criar_chat_model_exige_api_key() -> None:
 
 def test_criar_chat_model_rejeita_chave_vazia() -> None:
     """Chave em branco deve ser tratada como não configurada."""
-    settings = _settings_com_chave(api_key="   ")
+    settings = settings_teste(google_api_key="   ")
 
     with pytest.raises(ValueError, match="vazia"):
         criar_chat_model(settings)
@@ -48,7 +31,7 @@ def test_criar_chat_model_rejeita_chave_vazia() -> None:
 
 def test_criar_chat_model_com_settings() -> None:
     """Factory deve criar ChatGoogleGenerativeAI com modelo e temperatura das settings."""
-    settings = _settings_com_chave()
+    settings = settings_teste()
     llm = criar_chat_model(settings)
 
     assert llm.model == "gemini-2.5-flash"
@@ -89,30 +72,10 @@ def test_construir_prompt_inclui_few_shot_e_data_uri() -> None:
 
 def test_montar_chain_com_llm_mockado_retorna_nota_fiscal() -> None:
     """Chain com LLM mockado deve devolver NotaFiscalExtraida a partir do data_uri."""
-    nota_esperada = NotaFiscalExtraida(
-        emitente=Emitente(razao_social="ACME LTDA", cnpj="12345678000190"),
-        destinatario=None,
-        dados_nota=DadosNota(
-            numero="123456",
-            serie="1",
-            tipo_documento=TipoDocumento.NFE,
-            data_emissao="2026-03-15",
-        ),
-        valores=Valores(valor_total_nota=1250.0),
-        produtos=[
-            Produto(
-                descricao="Notebook",
-                quantidade=1.0,
-                valor_unitario=1250.0,
-                valor_total=1250.0,
-            )
-        ],
-    )
+    nota_esperada = nota_fiscal_exemplo()
+    llm_fake = fake_llm_com_nota(nota_esperada)
 
-    llm_fake = MagicMock()
-    llm_fake.with_structured_output.return_value = RunnableLambda(lambda _entrada: nota_esperada)
-
-    chain = montar_chain(settings=_settings_com_chave(), llm=llm_fake)
+    chain = montar_chain(settings=settings_teste(), llm=llm_fake)
     resultado: NotaFiscalExtraida = chain.invoke({"data_uri": "data:image/png;base64,fake"})
 
     assert isinstance(resultado, NotaFiscalExtraida)
@@ -141,7 +104,7 @@ def test_montar_chain_usa_criar_chat_model_quando_llm_nao_injetado(
         _fake_criar,
     )
 
-    settings = _settings_com_chave()
+    settings = settings_teste()
     chain = montar_chain(settings=settings)
     resultado = chain.invoke({"data_uri": "data:application/pdf;base64,x"})
 

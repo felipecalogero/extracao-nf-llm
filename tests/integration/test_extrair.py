@@ -1,57 +1,18 @@
 """Testes de integração do endpoint POST /extrair-nf."""
 
-from collections.abc import Iterator
-from io import BytesIO
-
 import pytest
 from fastapi.testclient import TestClient
-from PIL import Image
-from pydantic import SecretStr
 
-from extracao_nf.core.config import Settings, get_settings
 from extracao_nf.core.exceptions import (
     ArquivoIlegivelError,
     PermanentError,
     TransientError,
 )
-from extracao_nf.domain.models import Emitente, ExtracaoResponse, NotaFiscalExtraida, Valores
-from extracao_nf.main import app
+from extracao_nf.domain.models import ExtracaoResponse
+from tests.fakes import PDF_VALIDO, bytes_imagem, extracao_response_exemplo
 
-PDF_VALIDO = b"%PDF-1.4\n% conteudo minimo de teste"
-
-
-def _imagem_bytes(formato: str) -> bytes:
-    buffer = BytesIO()
-    Image.new("RGB", (2, 2), color="white").save(buffer, format=formato)
-    return buffer.getvalue()
-
-
-PNG_VALIDO = _imagem_bytes("PNG")
-JPEG_VALIDO = _imagem_bytes("JPEG")
-
-
-def _resposta_ok() -> ExtracaoResponse:
-    return ExtracaoResponse(
-        nota_fiscal=NotaFiscalExtraida(
-            emitente=Emitente(razao_social="ACME"),
-            valores=Valores(valor_total_nota=10.0),
-        ),
-        inconsistencias=[],
-    )
-
-
-@pytest.fixture
-def client() -> Iterator[TestClient]:
-    """Cliente HTTP com limite de upload reduzido e API key fake."""
-    settings = Settings(
-        upload_max_bytes=1024,
-        google_api_key=SecretStr("fake"),
-        environment="test",
-    )
-    app.dependency_overrides[get_settings] = lambda: settings
-    with TestClient(app) as test_client:
-        yield test_client
-    app.dependency_overrides.clear()
+PNG_VALIDO = bytes_imagem("PNG")
+JPEG_VALIDO = bytes_imagem("JPEG")
 
 
 @pytest.mark.parametrize(
@@ -72,7 +33,7 @@ def test_extrair_nf_aceita_arquivo_valido(
     """PDF, PNG e JPEG válidos devem retornar 200 com ExtracaoResponse."""
     monkeypatch.setattr(
         "extracao_nf.api.routes.extrair.extrair_nota_fiscal",
-        lambda **_kwargs: _resposta_ok(),
+        lambda **_kwargs: extracao_response_exemplo(),
     )
 
     response = client.post(

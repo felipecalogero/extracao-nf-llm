@@ -5,11 +5,9 @@ from unittest.mock import MagicMock
 
 import pytest
 from langchain_core.runnables import RunnableLambda
-from pydantic import SecretStr
 
-from extracao_nf.core.config import Settings
 from extracao_nf.core.exceptions import ArquivoInvalidoError, PermanentError, TransientError
-from extracao_nf.domain.enums import TipoDocumento, TipoInconsistencia
+from extracao_nf.domain.enums import TipoInconsistencia
 from extracao_nf.domain.models import (
     DadosNota,
     Emitente,
@@ -22,49 +20,24 @@ from extracao_nf.services.extrator_nf import (
     calcular_inconsistencias,
     extrair_nota_fiscal,
 )
-
-PDF_VALIDO = b"%PDF-1.4\n% conteudo minimo de teste"
-
-
-def _settings() -> Settings:
-    return Settings(
-        environment="test",
-        google_api_key=SecretStr("fake-key"),
-        gemini_model="gemini-2.5-flash",
-    )
-
-
-def _nota_completa() -> NotaFiscalExtraida:
-    return NotaFiscalExtraida(
-        emitente=Emitente(razao_social="ACME LTDA", cnpj="12345678000190"),
-        destinatario=None,
-        dados_nota=DadosNota(
-            numero="123456",
-            serie="1",
-            tipo_documento=TipoDocumento.NFE,
-            data_emissao="2026-03-15",
-        ),
-        valores=Valores(valor_produtos=1250.0, valor_total_nota=1250.0),
-        produtos=[
-            Produto(
-                descricao="Notebook",
-                quantidade=1.0,
-                valor_unitario=1250.0,
-                valor_total=1250.0,
-            )
-        ],
-    )
+from tests.fakes import (
+    PDF_VALIDO,
+    chain_erro,
+    chain_retorna,
+    nota_fiscal_exemplo,
+    settings_teste,
+)
 
 
 def test_extrair_nota_fiscal_completa_ok() -> None:
     """Extração OK com LLM mockado devolve ExtracaoResponse sem inconsistências."""
-    nota = _nota_completa()
-    chain: ChainExtracao = RunnableLambda(lambda _entrada: nota)
+    nota = nota_fiscal_exemplo()
+    chain: ChainExtracao = chain_retorna(nota)
 
     resposta = extrair_nota_fiscal(
         conteudo=PDF_VALIDO,
         content_type="application/pdf",
-        settings=_settings(),
+        settings=settings_teste(),
         chain=chain,
     )
 
@@ -82,12 +55,12 @@ def test_extrair_nota_fiscal_campo_faltante_permanece_null() -> None:
         valores=Valores(valor_total_nota=89.9),
         produtos=[],
     )
-    chain: ChainExtracao = RunnableLambda(lambda _entrada: nota)
+    chain: ChainExtracao = chain_retorna(nota)
 
     resposta = extrair_nota_fiscal(
         conteudo=PDF_VALIDO,
         content_type="application/pdf",
-        settings=_settings(),
+        settings=settings_teste(),
         chain=chain,
     )
 
@@ -107,12 +80,12 @@ def test_extrair_nota_fiscal_soma_produtos_divergente() -> None:
             Produto(descricao="B", valor_total=50.0),
         ],
     )
-    chain: ChainExtracao = RunnableLambda(lambda _entrada: nota)
+    chain: ChainExtracao = chain_retorna(nota)
 
     resposta = extrair_nota_fiscal(
         conteudo=PDF_VALIDO,
         content_type="application/pdf",
-        settings=_settings(),
+        settings=settings_teste(),
         chain=chain,
     )
 
@@ -133,48 +106,34 @@ def test_calcular_inconsistencias_sem_produtos_nao_gera_alerta() -> None:
 
 def test_extrair_nota_fiscal_timeout_vira_transient_error() -> None:
     """Timeout do LLM deve ser mapeado para TransientError."""
-
-    def _falhar(_entrada: object) -> NotaFiscalExtraida:
-        raise TimeoutError("deadline exceeded")
-
-    chain = RunnableLambda(_falhar)
-
     with pytest.raises(TransientError, match="Falha na chamada ao LLM"):
         extrair_nota_fiscal(
             conteudo=PDF_VALIDO,
             content_type="application/pdf",
-            settings=_settings(),
-            chain=chain,
+            settings=settings_teste(),
+            chain=chain_erro(TimeoutError("deadline exceeded")),
         )
 
 
 def test_extrair_nota_fiscal_rate_limit_vira_transient_error() -> None:
     """Rate limit (429) deve ser classificado como TransientError."""
-
-    def _falhar(_entrada: object) -> NotaFiscalExtraida:
-        raise RuntimeError("Error 429: rate limit exceeded")
-
     with pytest.raises(TransientError):
         extrair_nota_fiscal(
             conteudo=PDF_VALIDO,
             content_type="application/pdf",
-            settings=_settings(),
-            chain=RunnableLambda(_falhar),
+            settings=settings_teste(),
+            chain=chain_erro(RuntimeError("Error 429: rate limit exceeded")),
         )
 
 
 def test_extrair_nota_fiscal_erro_permanente_do_llm() -> None:
     """Erro de autenticação/request inválido vira PermanentError."""
-
-    def _falhar(_entrada: object) -> NotaFiscalExtraida:
-        raise RuntimeError("401 Unauthorized: invalid API key")
-
     with pytest.raises(PermanentError, match="Falha na chamada ao LLM"):
         extrair_nota_fiscal(
             conteudo=PDF_VALIDO,
             content_type="application/pdf",
-            settings=_settings(),
-            chain=RunnableLambda(_falhar),
+            settings=settings_teste(),
+            chain=chain_erro(RuntimeError("401 Unauthorized: invalid API key")),
         )
 
 
@@ -186,7 +145,7 @@ def test_extrair_nota_fiscal_rejeita_resposta_fora_do_schema() -> None:
         extrair_nota_fiscal(
             conteudo=PDF_VALIDO,
             content_type="application/pdf",
-            settings=_settings(),
+            settings=settings_teste(),
             chain=chain,
         )
 
@@ -199,7 +158,7 @@ def test_extrair_nota_fiscal_propaga_arquivo_invalido() -> None:
         extrair_nota_fiscal(
             conteudo=b"",
             content_type="application/pdf",
-            settings=_settings(),
+            settings=settings_teste(),
             chain=chain,
         )
 

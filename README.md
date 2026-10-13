@@ -7,6 +7,7 @@ Projeto de estudos (PDI) para extração de dados de **Nota Fiscal** utilizando 
 | Documento | Descrição |
 |-----------|-----------|
 | [Técnicas de Prompting](docs/tecnica-de-prompting.md) | One-shot, Few-shot e Chain of Thought aplicados à extração de NF |
+| [Teste real com Gemini](docs/teste-real.md) | Passos com `curl` para validar a API com chave real |
 
 ## Pré-requisitos
 
@@ -44,7 +45,8 @@ Em desenvolvimento incremental.
 - Preparação de documento para o LLM (validação + data URI base64)
 - Prompt few-shot + chain LangChain com Gemini (`with_structured_output`)
 - Serviço de orquestração extrator_nf (erros LLM + inconsistências)
+- Suíte de testes consolidada (`tests/conftest.py`, `tests/fakes.py`, unit + integration)
 
 **Pendente:**
-- Suíte consolidada (Parte 8) e observabilidade (Parte 9)
+- Parte 9: LangSmith, Docker e CI
 
