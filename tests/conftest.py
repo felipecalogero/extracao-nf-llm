@@ -10,6 +10,15 @@ from extracao_nf.main import app
 from tests import fakes
 
 
+@pytest.fixture(autouse=True)
+def _sem_tracing_real(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
+    # hazard: o lifespan lê o .env real; sem isso os testes enviariam traces ao LangSmith
+    monkeypatch.setenv("LANGSMITH_TRACING", "false")
+    get_settings.cache_clear()
+    yield
+    get_settings.cache_clear()
+
+
 @pytest.fixture
 def settings_teste() -> Settings:
     """Settings de teste (upload pequeno + API key fake)."""

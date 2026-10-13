@@ -1,4 +1,4 @@
-.PHONY: help install lint format test run
+.PHONY: help install lint format test run docker-build docker-run
 
 # Colors
 CYAN := \033[36m
@@ -17,6 +17,8 @@ help:
 	@echo "  ├── $(BOLD)$(GREEN)format$(RESET) ─ Auto-format your code with ruff"
 	@echo "  ├── $(BOLD)$(GREEN)test$(RESET) ─ Run tests with coverage report"
 	@echo "  ├── $(BOLD)$(GREEN)run$(RESET) ─ Start development server (hot reload)"
+	@echo "  ├── $(BOLD)$(GREEN)docker-build$(RESET) ─ Build the Docker image"
+	@echo "  ├── $(BOLD)$(GREEN)docker-run$(RESET) ─ Run the Docker image using .env"
 	@echo "  └── $(BOLD)$(GREEN)help$(RESET) ─ Show this beautiful help message"
 	@echo ""
 	@echo "  $(BOLD)$(BLUE)💡 Tip:$(RESET) Run $(CYAN)make install$(RESET) first if this is your first time!\n"
@@ -38,3 +40,9 @@ test:
 
 run:
 	uv run uvicorn extracao_nf.main:app --host 0.0.0.0 --port 8000 --reload
+
+docker-build:
+	docker build -t extracao-nf-llm .
+
+docker-run:
+	docker run --rm -p 8000:8000 --env-file .env extracao-nf-llm

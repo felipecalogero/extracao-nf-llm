@@ -28,7 +28,7 @@ todos:
     status: completed
   - id: parte9-extra-observabilidade
     content: "Parte 9 (extra): LangSmith tracing, Dockerfile, CI"
-    status: pending
+    status: completed
 isProject: false
 ---
 

@@ -34,7 +34,7 @@ def test_criar_chat_model_com_settings() -> None:
     settings = settings_teste()
     llm = criar_chat_model(settings)
 
-    assert llm.model == "gemini-2.5-flash"
+    assert llm.model == "gemini-3.8-flash"
     assert llm.temperature == 0.0
     assert llm.timeout == 30.0
 

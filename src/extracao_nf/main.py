@@ -17,7 +17,9 @@ from fastapi import FastAPI
 
 from extracao_nf.api.routes.extrair import router as extrair_router
 from extracao_nf.api.routes.health import router as health_router
+from extracao_nf.core.config import get_settings
 from extracao_nf.core.logging import logger, setup_logging
+from extracao_nf.core.tracing import configurar_tracing
 
 
 @asynccontextmanager
@@ -26,11 +28,13 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
 
     Startup:
         - Inicializa o structlog (logs estruturados)
+        - Configura o tracing LangSmith (se habilitado)
 
     Shutdown:
         - Encerra a aplicação de forma ordenada
     """
     setup_logging()
+    configurar_tracing(get_settings())
     logger.info("iniciando aplicação")
 
     yield

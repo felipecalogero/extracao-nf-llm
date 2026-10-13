@@ -103,7 +103,17 @@ def extrair_nota_fiscal(
     chain_extracao = chain if chain is not None else montar_chain(settings=settings)
 
     try:
-        nota = chain_extracao.invoke({"data_uri": documento.data_uri})
+        nota = chain_extracao.invoke(
+            {"data_uri": documento.data_uri},
+            config={
+                "run_name": "extrair_nota_fiscal",
+                "tags": ["extracao-nf", settings.gemini_model],
+                "metadata": {
+                    "content_type": documento.content_type,
+                    "tamanho_bytes": documento.tamanho_bytes,
+                },
+            },
+        )
     except (ArquivoInvalidoError, ArquivoIlegivelError):
         raise
     except ExtracaoNFError:

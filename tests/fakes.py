@@ -36,7 +36,7 @@ def settings_teste(
     *,
     google_api_key: str | None = "fake",
     upload_max_bytes: int = 1024,
-    gemini_model: str = "gemini-2.5-flash",
+    gemini_model: str = "gemini-3.8-flash",
     llm_temperature: float = 0.0,
     llm_timeout_seconds: float = 30.0,
 ) -> Settings:

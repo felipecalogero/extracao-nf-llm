@@ -38,7 +38,7 @@ class Settings(BaseSettings):
         description="Chave de API do Google AI Studio / Gemini",
     )
     gemini_model: str = Field(
-        default="gemini-2.5-flash",
+        default="gemini-3.8-flash",
         description="Nome do modelo Gemini multimodal usado na extração",
     )
     llm_temperature: float = Field(
@@ -51,6 +51,23 @@ class Settings(BaseSettings):
         default=60.0,
         gt=0.0,
         description="Timeout em segundos para cada chamada ao Gemini",
+    )
+
+    langsmith_tracing: bool = Field(
+        default=False,
+        description="Habilita o tracing das execuções LangChain no LangSmith",
+    )
+    langsmith_api_key: SecretStr | None = Field(
+        default=None,
+        description="Chave de API do LangSmith",
+    )
+    langsmith_project: str = Field(
+        default="extracao-nf-llm",
+        description="Projeto do LangSmith onde os traces são agrupados",
+    )
+    langsmith_endpoint: str | None = Field(
+        default=None,
+        description="Endpoint do LangSmith (ex.: região EU). Use null para o padrão",
     )
 
 
